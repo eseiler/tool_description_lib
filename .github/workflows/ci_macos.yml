@@ -37,18 +37,9 @@ jobs:
         exclude:
           - compiler: gcc-third-latest
             cpp: 26
-        include:
-          - compiler: gcc-latest
-            cpp: 17
-            build_type: Release
-            cpp_flags: "-Wno-maybe-uninitialized"
-          - compiler: gcc-second-latest
-            cpp: 17
-            build_type: Release
-            cpp_flags: "-Wno-maybe-uninitialized"
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup compiler
         uses: seqan/actions/setup-compiler@main
@@ -57,9 +48,13 @@ jobs:
 
       - name: Configure tests
         run: |
+          cpp_flags=""
+          if [[ "${{ matrix.compiler }}" == gcc-* && "${{ matrix.cpp }}" == 17 && "${{ matrix.build_type }}" == Release ]]; then
+            cpp_flags="-Wno-maybe-uninitialized"
+          fi
           mkdir build && cd build
           cmake ../ -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-                    -DCMAKE_CXX_FLAGS="-Wall -Wextra -pedantic -Werror ${{ matrix.cpp_flags }}" \
+                    -DCMAKE_CXX_FLAGS="-Wall -Wextra -pedantic -Werror ${cpp_flags}" \
                     -DCMAKE_CXX_STANDARD=${{ matrix.cpp }}
 
       - name: Build tests
